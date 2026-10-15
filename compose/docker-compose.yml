@@ -1,0 +1,27 @@
+services:
+  # Сервис обратного прокси
+  app:
+      image: nginx:alpine
+      container_name: app
+      volumes:
+      - ./app-html:/usr/share/nginx/html:ro
+      expose:
+      - "80"
+      networks:
+      - proxy-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    networks:
+      - proxy-net
+
+networks:
+  proxy-net:
+    driver: bridge
