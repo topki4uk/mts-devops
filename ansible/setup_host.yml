@@ -7,13 +7,12 @@
   vars:
     admin_user: deployer
     admin_ssh_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
-    timezone: "Europe/Moscow"
 
   tasks:
 
-    - name: Создать пользователя deployer с правами sudo без пароля
+    - name: Создать пользователя "{{ admin_user }}" с правами sudo без пароля
       ansible.builtin.user:
-        name: deployer
+        name: "{{ admin_user }}"
         comment: "Deploy user"
 
         groups:
@@ -21,13 +20,13 @@
 
         append: true
         shell: /bin/bash
-        home: /home/deployer
+        home: "/home/{{ admin_user }}"
         create_home: true
 
     - name: Добавить SSH-ключ для deploy
       ansible.posix.authorized_key:
-        user: deployer
-        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+        user: "{{ admin_user }}"
+        key: "{{ admin_ssh_key }}"
         state: present
 
     - name: Установить зависимости (Debian/Ubuntu)
@@ -84,9 +83,9 @@
         state: started
         enabled: true
 
-    - name: Добавить deployer в группу docker
+    - name: Добавить "{{ admin_user }}" в группу docker
       ansible.builtin.user:
-        name: deployer
+        name: "{{ admin_user }}"
         groups: docker
         append: true
       register: user_mod
@@ -94,5 +93,5 @@
   handlers:
     - name: Перезапустить SSH
       ansible.builtin.service:
-        name: sshd
+        name: ssh
         state: restarted
